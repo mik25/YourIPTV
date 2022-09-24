@@ -1,4 +1,4 @@
-var env = process.env.NODE_ENV ? 'heroku':'local';
+var env = process.env.NODE_ENV ? 'beamup':'local';
 
 var config = {
     addon: 'started',
@@ -6,9 +6,9 @@ var config = {
 
 switch (env) {
     //Public server build.
-    case 'heroku':
+    case 'beamup':
 		config.port = process.env.PORT
-        config.local = "https://youriptvbeta.herokuapp.com"
+        config.local = "5a0d1888fa64-youriptv.baby-beamup.club"
         break;
 
     //Local sever build.

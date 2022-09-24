@@ -5,7 +5,13 @@ axios.defaults.method = "GET"
 
 function getUserData(userConf) {
 
-    const url = JSON.parse(Buffer.from(userConf, 'base64').toString())
+    let url
+    try {
+        url = JSON.parse(Buffer.from(userConf, 'base64').toString())       
+    } catch (error) {
+        console.log(error)
+        return "error while parsing url"
+    }
     
     const queryString = url.split('?')[1] || "unknown"
     const baseURL = url.split('/')[0] + "//" + url.split('?')[0].split('/')[2] || "unknown"
@@ -49,8 +55,6 @@ async function getManifest(url) {
     }
     const responseJSON = response.data
     // console.log(responseJSON)
-    // const rawdata = fs.readFileSync("panel.json","utf8")
-    // const  responseJSON = JSON.parse(rawdata);
 
     let movieCatalog = []
     if(responseJSON && responseJSON.categories && responseJSON.categories.movie){    
