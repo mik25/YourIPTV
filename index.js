@@ -6,6 +6,11 @@ const config = require('./config');
 const MANIFEST = require('./manifest');
 const { getManifest, getCatalog, getMeta, getUserData } = require("./addon");
 
+
+const NodeCache = require( "node-cache" );
+const myCache = new NodeCache({stdTTL:1*60*60});
+
+
 var respond = function (res, data) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', '*');
@@ -38,11 +43,19 @@ let newManifest = { ...MANIFEST };
 if (!((req || {}).params || {}).userConf) {
     newManifest.behaviorHints.configurationRequired = true;
     respond(res, newManifest);
-} else {
+}else {
   try {
-    newManifest = await getManifest(req.params.userConf)
-    // newManifest.behaviorHints.configurationRequired = false;
-    respond(res, newManifest);
+
+    if (myCache.has(`manifest-${req.params.userConf}`)) {
+      respond(res,myCache.get(`manifest-${req.params.userConf}`))
+    }else{
+      newManifest = await getManifest(req.params.userConf)
+      // newManifest.behaviorHints.configurationRequired = false;
+      if(newManifest && newManifest.id){
+        myCache.set(`manifest-${req.params.userConf}`,newManifest)
+      }
+      respond(res, newManifest);
+    }  
   } catch (error) {
     console.log(error)
     respond(res,{error:error})
@@ -82,15 +95,22 @@ app.get('/:userConf/catalog/:type/:id/:extra?.json', async function (req, res) {
     
     let metas = []
     try {
-      metas = await getCatalog(userConf,type,extraObj.genre)
-      respond(res, {metas: metas})
+
+      if (myCache.has(`catalog-${userConf}-${type}-${id}-${extra}`)) {
+        respond(res,myCache.get(`catalog-${userConf}-${type}-${id}-${extra}`))
+      }else{
+        metas = await getCatalog(userConf,type,extraObj.genre)
+        if(metas.length > 0){
+          myCache.set(`catalog-${userConf}-${type}-${id}-${extra}`,{metas: metas})
+        }
+        respond(res, {metas: metas})
+      }
 
     } catch (error) {
       console.log(error)
       respond(res, {metas:[]})
       
     }
-    // metas = await catalogHandler(extraObj.genre,userConfiguration.api,pagination,type)
       
     // if(extraObj && extraObj.search){
     //   metas = await searchCatalogHandler(extraObj.search,userConfiguration.api,pagination,type)
@@ -103,9 +123,17 @@ app.get('/:userConf/meta/:type/:id.json', async function (req,res){
   let {userConf,type,id} = req.params
 
   try {
-    const meta = await getMeta(userConf,type,id)
-    // console.log(meta)
-    respond(res, {meta:meta})
+    if (myCache.has(`meta-${userConf}-${type}-${id}`)) {
+      respond(res,myCache.get(`meta-${userConf}-${type}-${id}`))
+    }else{
+      const meta = await getMeta(userConf,type,id)
+      // console.log(meta)
+      if(meta && meta.id){
+        myCache.set(`meta-${userConf}-${type}-${id}`,{meta:meta})
+      }
+      respond(res, {meta:meta})
+    }
+
   } catch (error) {
     console.log(error)
     respond(res,{error})
