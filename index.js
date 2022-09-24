@@ -1,9 +1,7 @@
 
 const express = require("express");
-const landing = require('./landingTemplate');
+// const landing = require('./landingTemplate');
 const app = express();
-const axios = require('axios')
-
 const config = require('./config');
 const MANIFEST = require('./manifest');
 const { getManifest, getCatalog, getMeta, getUserData } = require("./addon");

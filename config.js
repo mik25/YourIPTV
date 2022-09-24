@@ -6,7 +6,7 @@ var config = {
 
 switch (env) {
     //Public server build.
-    case 'beamup':
+    case 'heroku':
 		config.port = process.env.PORT
         config.local = "https://youriptvbeta.herokuapp.com"
         break;
