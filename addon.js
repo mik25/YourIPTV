@@ -45,28 +45,33 @@ async function getManifest(url) {
         return {error}
     }
     const responseJSON = response.data
-
+    // console.log(responseJSON)
     // const rawdata = fs.readFileSync("panel.json","utf8")
     // const  responseJSON = JSON.parse(rawdata);
 
     let movieCatalog = []
-    responseJSON.categories.movie.forEach(i => {
-        let name = i.category_name
-        movieCatalog.push(name)
-    });
+    if(responseJSON && responseJSON.categories && responseJSON.categories.movie){    
+        responseJSON.categories.movie.forEach(i => {
+            let name = i.category_name
+            movieCatalog.push(name)
+        });
+    }
 
     let seriesCatalog = []
-    responseJSON.categories.series.forEach(i => {
-        let name = i.category_name
-        seriesCatalog.push(name)
-    });
+    if(responseJSON && responseJSON.categories && responseJSON.categories.series){    
+        responseJSON.categories.series.forEach(i => {
+            let name = i.category_name
+            seriesCatalog.push(name)
+        });
+    }
 
     let liveCatalog = []
-    responseJSON.categories.live.forEach(i => {
-        let name = i.category_name
-        liveCatalog.push(name)
-    });
-    
+    if(responseJSON && responseJSON.categories && responseJSON.categories.live){    
+        responseJSON.categories.live.forEach(i => {
+            let name = i.category_name
+            liveCatalog.push(name)
+        });
+    }
     const manifest = {
         id:"org.community.youriptv",
         version:"1.0.0",
@@ -211,7 +216,7 @@ async function getMeta(url,type,id) {
         meta ={
             id:"yiptv:" + streamID,
             type,
-            name:getMeta.data.info.name || "",
+            name: getMeta.data.info.name === undefined ? "": getMeta.data.info.name,
             poster: getMeta.data.info.cover_big,
             background: getMeta.data.info.backdrop_path[0] || "https://www.stremio.com/website/wallpapers/stremio-wallpaper-5.jpg",
             description: getMeta.data.info.description ||"",
