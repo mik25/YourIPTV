@@ -12,12 +12,15 @@ function getUserData(userConf) {
 
     const domainName = url.split("?")[0].split("/")[2].split(":")[0] || "unknown"
 
+    const idPrefix = domainName.charAt(0) + domainName.substr(Math.ceil(domainName.length / 2 - 1), domainName.length % 2 === 0 ? 2 : 1) + domainName.charAt(domainName.length - 1) + ":";
+
     if(queryString === undefined){return {result:"URL does not have any queries!"}}
     if(baseURL === undefined){return {result:"URL does not seem like an url!"}}
 
     let obj = {}
     obj.baseURL = baseURL
     obj.domainName = domainName
+    obj.idPrefix = idPrefix
 
     const urlParams = new URLSearchParams(queryString);
     const entries = urlParams.entries();
@@ -77,24 +80,24 @@ async function getManifest(url) {
         version:"1.0.0",
         name:obj.domainName + " IPTV" || "Your IPTV",
         description:`You will access to your ${obj.domainName} IPTV with this addon!`,
-        idPrefixes:["yiptv:"],
+        idPrefixes:[obj.idPrefix],
         catalogs:[
             {
-                id:"yiptv:movie",
+                id:`${obj.idPrefix}movie`,
                 name: obj.domainName || "Your IPTV",
                 type:"movie",
                 extra:[{name:"genre",options:movieCatalog,isRequired:true}],
                 isRequired: true
             },
             {
-                id:"yiptv:series",
+                id:`${obj.idPrefix}series`,
                 name:obj.domainName || "Your IPTV",
                 type:"series",
                 extra:[{name:"genre",options:seriesCatalog,isRequired:true}],
                 isRequired: true
             },
             {
-                id:"yiptv:tv",
+                id:`${obj.idPrefix}tv`,
                 name: obj.domainName || "Your IPTV",
                 type:"tv",
                 extra:[{name:"genre",options:liveCatalog,isRequired:true}],
@@ -157,17 +160,17 @@ async function getCatalog(url,type,genre) {
         let id,name = i.name, poster, posterShape, imdbRating
 
         if(type === "series"){
-            id = "yiptv:" + i.series_id
+            id = obj.idPrefix + i.series_id
             poster = i.cover
             imdbRating = i.rating || ""
             posterShape = "poster"
         }else if(type === "movie"){
-            id = "yiptv:" + i.stream_id
+            id = obj.idPrefix + i.stream_id
             poster = i.stream_icon
             imdbRating = i.rating || ""
             posterShape = "poster"
         }else if (type === "tv"){
-            id = "yiptv:" + i.stream_id
+            id = obj.idPrefix + i.stream_id
             poster = i.stream_icon
             imdbRating = null
             posterShape = "square"
@@ -214,7 +217,7 @@ async function getMeta(url,type,id) {
 
     if(type === "movie"|| type === "series"){
         meta ={
-            id:"yiptv:" + streamID,
+            id: obj.idPrefix + streamID,
             type,
             name: getMeta.data.info.name === undefined ? "": getMeta.data.info.name,
             poster: getMeta.data.info.cover_big,
@@ -232,7 +235,7 @@ async function getMeta(url,type,id) {
         seasons.forEach(season => {
             // console.log(season)
             getMeta.data.episodes[season].forEach(episode => {
-                let id = "yiptv:"  +episode.id
+                let id = obj.idPrefix  +episode.id
                 let title = episode.title || ""
                 let season = episode.season || null
                 let episodeNo = episode.episode_num || null
@@ -268,7 +271,7 @@ async function getMeta(url,type,id) {
             
             if(Number(i.stream_id) === Number(streamID)){
 
-                let id="yiptv:" + i.stream_id
+                let id= obj.idPrefix + i.stream_id
                 
                 let name = i.name || ""
                 let background=  "https://www.stremio.com/website/wallpapers/stremio-wallpaper-5.jpg"//i.stream_icon,
